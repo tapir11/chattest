@@ -25,26 +25,43 @@ namespace chattest
                 {
                     case 1: 
                         {
+                            bool tryagain = true;
+                            while (tryagain)
+                            {
+                                try
+                                {   
+                                    
+                                    Console.WriteLine("enter server ip");
+                                    string servip = Console.ReadLine();
+                                    TcpClient client = new TcpClient(servip, 911);
+                                    StreamWriter sw = new StreamWriter(client.GetStream());
+                                    StreamReader sr = new StreamReader(client.GetStream());
+                                    sw.WriteLine("hello");
+                                    sw.Flush();
+                                    string data = sr.ReadLine();
+                                    Console.WriteLine(data);
+                                    if (data == "hello")
+                                        Console.WriteLine("polaczono");
+                                    string msg;
+                                    do
+                                    {
 
-                            try
-                            {
-                                Console.WriteLine("enter server ip");
-                                string servip = Console.ReadLine();
-                                TcpClient client = new TcpClient(servip, 911);
-                                StreamWriter sw = new StreamWriter(client.GetStream());
-                                StreamReader sr = new StreamReader(client.GetStream());
-                                sw.WriteLine("hello");
-                                sw.Flush();
-                                string data = sr.ReadLine();
-                                Console.WriteLine(data);
-                                if (data == "hello")
-                                    Console.WriteLine("polaczono");
+                                        Console.WriteLine("wpisz wiadomosc lub \"exit\" aby zakonczyc");
+                                        msg = Console.ReadLine();
+                                        sw.WriteLine(msg);
+                                        sw.Flush();
+
+
+                                    } while (msg != "exit");
+                                    tryagain = false;
+                                }
+                                catch (System.Net.Sockets.SocketException e)
+                                {
+                                    Console.WriteLine("server is not responding\n");
+                                    tryagain = true;
+                                }
+                                
                             }
-                            catch(Exception e) 
-                            {
-                                Console.WriteLine(e);
-                            }
-                            
 
 
                             
@@ -53,11 +70,12 @@ namespace chattest
 
                             break;
                         };
-
+                        
 
                     case 2: 
                         
-                        {                            
+                        {
+                            Console.WriteLine("waiting for connection with client\n");
                             TcpListener listener = new TcpListener(IPAddress.Any,911);
                             listener.Start();
                             TcpClient client = listener.AcceptTcpClient();
@@ -65,14 +83,35 @@ namespace chattest
 
                             StreamWriter sw = new StreamWriter(client.GetStream());
                             StreamReader sr = new StreamReader(client.GetStream());
-
-                            String data = sr.ReadLine();
-                            Console.WriteLine(data);
-                            if (data == "hello")
+                            try
                             {
-                                sw.WriteLine("hello");
-                                sw.Flush();
-                                Console.WriteLine("ustanowiono polaczenie z: {0}",client.Client.RemoteEndPoint.ToString());
+                                String data = sr.ReadLine();
+                                Console.WriteLine(data);
+                                if (data == "hello")
+                                {
+                                    sw.WriteLine("hello");
+                                    sw.Flush();
+                                    Console.WriteLine("ustanowiono polaczenie z: {0}\n\n", client.Client.RemoteEndPoint.ToString());
+                                }
+
+                                while (client.Connected)
+                                {
+
+                                    data = sr.ReadLine();
+                                    if (data == "exit")
+                                    {
+                                        client.Close();
+                                        Console.WriteLine("user disconnected");
+                                        break;
+                                    }
+                                        
+                                    Console.WriteLine(data);
+
+                                }
+                            }
+                            catch(System.IO.IOException e)
+                            {
+                                Console.WriteLine("user disconnected");
                             }
 
                             break;
